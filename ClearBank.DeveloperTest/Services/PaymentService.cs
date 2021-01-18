@@ -1,4 +1,6 @@
-﻿using ClearBank.DeveloperTest.Data;
+﻿using System;
+using System.Collections.Generic;
+using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Types;
 using System.Configuration;
 using ClearBank.DeveloperTest.Helpers;
@@ -50,24 +52,8 @@ namespace ClearBank.DeveloperTest.Services
 
             if (_account != null)
             {
-                switch (request.PaymentScheme)
-                {
-                    case PaymentScheme.Bacs:
-                        isValid = _account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs);
-                        break;
-
-                    case PaymentScheme.FasterPayments:
-
-                        isValid = (_account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments) &&
-                                      (_account.Balance >= request.Amount));
-                        break;
-
-                    case PaymentScheme.Chaps:
-                        isValid = (_account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps) &&
-                                   (_account.Status == AccountStatus.Live));
-                        break;
-                }
-
+                IValidator validator = ValidatorFactory.CreateValidator(Enum.GetName(typeof(PaymentScheme), request.PaymentScheme));
+                isValid = validator.Validate(_account, request);
             }
 
             return isValid;
