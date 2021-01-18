@@ -25,22 +25,13 @@ namespace ClearBank.DeveloperTest.Services
         {
             var dataStoreType = _appConfigProvider.AppSettings["DataStoreType"];
 
-            _account = dataStoreType == "Backup" ? _backupAccountDataStore.GetAccount(request.DebtorAccountNumber) : _accountDataStore.GetAccount(request.DebtorAccountNumber);
+            _account = AccountHelper.GetAccount(dataStoreType, request.DebtorAccountNumber, _backupAccountDataStore, _accountDataStore);
 
             var result = new MakePaymentResult {Success = Validate(request)};
 
             if (result.Success)
             {
-                _account.Balance -= request.Amount;
-
-                if (dataStoreType == "Backup")
-                {
-                    _backupAccountDataStore.UpdateAccount(_account);
-                }
-                else
-                {
-                    _accountDataStore.UpdateAccount(_account);
-                }
+                result.Success = AccountHelper.UpdateAccount(dataStoreType, request.Amount, _account, _backupAccountDataStore, _accountDataStore);
             }
 
             return result;
@@ -52,7 +43,7 @@ namespace ClearBank.DeveloperTest.Services
 
             if (_account != null)
             {
-                IValidator validator = ValidatorFactory.CreateValidator(Enum.GetName(typeof(PaymentScheme), request.PaymentScheme));
+                var validator = ValidatorFactory.CreateValidator(Enum.GetName(typeof(PaymentScheme), request.PaymentScheme));
                 isValid = validator.Validate(_account, request);
             }
 

@@ -16,6 +16,10 @@ namespace ClearBank.DeveloperTest.Helpers
 
         public static IValidator CreateValidator(string name)
         {
+            if (string.IsNullOrWhiteSpace(name) || (!ValidatorMap.ContainsKey(name)))
+            {
+                return null;
+            }
             return ValidatorMap[name]();
         }
     }
